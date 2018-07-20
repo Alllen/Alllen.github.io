@@ -108,18 +108,18 @@
 
 
 
-  <meta name="description" content="背景话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&amp;lt;30ms，但实际时延一直在200ms左右，初步确定是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000">
+  <meta name="description" content="背景话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&amp;lt;30ms，但实际时延一直在200ms左右。 初步定位是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 10000">
 <meta name="keywords" content="进程调度">
 <meta property="og:type" content="article">
 <meta property="og:title" content="从Linux进程调度写起">
 <meta property="og:url" content="http://yoursite.com/2018/07/21/从Linux进程调度写起/index.html">
 <meta property="og:site_name" content="Wanger&#39;s Blog">
-<meta property="og:description" content="背景话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&amp;lt;30ms，但实际时延一直在200ms左右，初步确定是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000">
+<meta property="og:description" content="背景话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&amp;lt;30ms，但实际时延一直在200ms左右。 初步定位是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 10000">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-07-20T18:07:34.837Z">
+<meta property="og:updated_time" content="2018-07-20T18:14:13.800Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="从Linux进程调度写起">
-<meta name="twitter:description" content="背景话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&amp;lt;30ms，但实际时延一直在200ms左右，初步确定是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000">
+<meta name="twitter:description" content="背景话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&amp;lt;30ms，但实际时延一直在200ms左右。 初步定位是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 10000">
 
 
 
@@ -378,7 +378,7 @@
                 
               
 
-              <time title="创建时间：2018-07-21 02:03:55 / 修改时间：02:07:34" itemprop="dateCreated datePublished" datetime="2018-07-21T02:03:55+08:00">2018-07-21</time>
+              <time title="创建时间：2018-07-21 02:03:55 / 修改时间：02:14:13" itemprop="dateCreated datePublished" datetime="2018-07-21T02:03:55+08:00">2018-07-21</time>
             
 
             
@@ -435,7 +435,8 @@
 
       
         <hr>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右，初步确定是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！<br><a id="more"></a></p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右。</p>
+<p>初步定位是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！<br><a id="more"></a></p>
 <h2 id="问题剖析"><a href="#问题剖析" class="headerlink" title="问题剖析"></a>问题剖析</h2><p>进一步对RDB期间时延飙升现象进行了分析，发现每次RDB持久化期间，持久化子进程占用CPU高达100%，同时Redis主进程（server进程）占用CPU仅1%左右。</p>
 <p>众所周知Redis持久化期间会fork出一个子进程，进行数据的落盘。想必你也猜到了，对的！我们对Redis进程进行了CPU绑定操作（numactl –cpubind），这样也就带来了现在这个问题，fork的继承特性导致子进程继承父进程的cpu affinity，从而父进程（redis-server）和子进程（RDB）运行在同一个CPU逻辑核上。<strong>子进程对父进程CPU资源抢占导致了持久化期间，父进程无法调度到CPU，进而请求处理时延增高。</strong></p>
 <p>至此，大家有点着急了吧，裤子都脱了，你就给我看这个。别急问题来了：</p>
