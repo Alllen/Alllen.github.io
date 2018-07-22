@@ -1,25 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search>
-  <entry>
-    <title><![CDATA[从Linux进程调度写起]]></title>
-    <url>%2F2018%2F07%2F21%2F%E4%BB%8ELinux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%86%99%E8%B5%B7%2F</url>
-    <content type="text"><![CDATA[背景话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右。 初步定位是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！ 问题剖析进一步对RDB期间时延飙升现象进行了分析，发现每次RDB持久化期间，持久化子进程占用CPU高达100%，同时Redis主进程（server进程）占用CPU仅1%左右。 众所周知Redis持久化期间会fork出一个子进程，进行数据的落盘。想必你也猜到了，对的！我们对Redis进程进行了CPU绑定操作（numactl –cpubind），这样也就带来了现在这个问题，fork的继承特性导致子进程继承父进程的cpu affinity，从而父进程（redis-server）和子进程（RDB）运行在同一个CPU逻辑核上。子进程对父进程CPU资源抢占导致了持久化期间，父进程无法调度到CPU，进而请求处理时延增高。 至此，大家有点着急了吧，裤子都脱了，你就给我看这个。别急问题来了： 对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？ Linux进程公平调度（CFS），说好的公平呢？ —to be continue]]></content>
+<search> 
+  
+    
+    <entry>
+      <title>从Linux进程调度写起</title>
+      <link href="/2018/07/21/%E4%BB%8ELinux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%86%99%E8%B5%B7/"/>
+      <url>/2018/07/21/%E4%BB%8ELinux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%86%99%E8%B5%B7/</url>
+      <content type="html"><![CDATA[<hr><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右。</p><p>初步定位是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！<br><a id="more"></a></p><h2 id="问题剖析"><a href="#问题剖析" class="headerlink" title="问题剖析"></a>问题剖析</h2><p>进一步对RDB期间时延飙升现象进行了分析，发现每次RDB持久化期间，持久化子进程占用CPU高达100%，同时Redis主进程（server进程）占用CPU仅1%左右。</p><p>众所周知Redis持久化期间会fork出一个子进程，进行数据的落盘。想必你也猜到了，对的！我们对Redis进程进行了CPU绑定操作（numactl –cpubind），这样也就带来了现在这个问题，fork的继承特性导致子进程继承父进程的cpu affinity，从而父进程（redis-server）和子进程（RDB）运行在同一个CPU逻辑核上。<strong>子进程对父进程CPU资源抢占导致了持久化期间，父进程无法调度到CPU，进而请求处理时延增高。</strong></p><p>至此，大家有点着急了吧，裤子都脱了，你就给我看这个。别急问题来了：</p><ol><li><p>对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？</p></li><li><p>Linux进程公平调度（CFS），说好的公平呢？</p></li></ol><p>—to be continue</p>]]></content>
+      
       <categories>
-        <category>Linux</category>
+          
+          <category> Linux </category>
+          
       </categories>
-      <tags>
-        <tag>进程调度</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title><![CDATA[开篇]]></title>
-    <url>%2F2018%2F07%2F19%2F%E5%BC%80%E7%AF%87%2F</url>
-    <content type="text"><![CDATA[花了两个晚上总算把博客搭起来了。建个博客旨在驱动自己去深入学习一些技术，锻炼自己的总结能力，及时记录所学所想，如果同时你能够帮到别人一二，自然更好。 从今天起锻炼，写博，卖马为生! 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。— 王小波]]></content>
+      
+      
+        <tags>
+            
+            <tag> 进程调度 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
+      <title>开篇</title>
+      <link href="/2018/07/19/%E5%BC%80%E7%AF%87/"/>
+      <url>/2018/07/19/%E5%BC%80%E7%AF%87/</url>
+      <content type="html"><![CDATA[<p>花了两个晚上总算把博客搭起来了。建个博客旨在驱动自己去深入学习一些技术，锻炼自己的总结能力，及时记录所学所想，如果同时你能够帮到别人一二，自然更好。</p><p>从今天起<strong>锻炼，写博，卖马为生!</strong></p><blockquote><p> 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。</p><p align="right">— 王小波</p><p></p></blockquote>]]></content>
+      
       <categories>
-        <category>其他</category>
+          
+          <category> 其他 </category>
+          
       </categories>
-      <tags>
-        <tag>其他</tag>
-      </tags>
-  </entry>
+      
+      
+        <tags>
+            
+            <tag> 其他 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+  
+  
 </search>
