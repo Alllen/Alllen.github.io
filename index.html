@@ -378,12 +378,24 @@
                 
               
 
-              <time title="创建时间：2018-07-21 02:03:55 / 修改时间：02:14:13" itemprop="dateCreated datePublished" datetime="2018-07-21T02:03:55+08:00">2018-07-21</time>
+              <time title="创建时间：2018-07-21 02:03:55" itemprop="dateCreated datePublished" datetime="2018-07-21T02:03:55+08:00">2018-07-21</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-07-24 01:53:19" itemprop="dateModified" datetime="2018-07-24T01:53:19+08:00">2018-07-24</time>
               
             
           </span>
@@ -435,16 +447,40 @@
 
       
         
-          <hr>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右。</p>
-<p>初步定位是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！<br>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/07/21/从Linux进程调度写起/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+          
+            <hr>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右，初步确定是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！</p>
+<h2 id="问题剖析"><a href="#问题剖析" class="headerlink" title="问题剖析"></a>问题剖析</h2><p>进一步对RDB期间时延飙升现象进行了分析，发现每次RDB持久化期间，持久化子进程占用CPU高达100%，同时Redis主进程（server进程）占用CPU仅1%左右。</p>
+<p>众所周知Redis持久化期间会fork出一个子进程，进行数据的落盘。想必你也猜到了，对的！我们对Redis进程进行了CPU绑定操作（numactl –cpubind），这样也就带来了现在这个问题，fork的继承特性导致子进程继承父进程的cpu affinity，从而父进程（redis-server）和子进程（RDB）运行在同一个CPU逻辑核上。<strong>子进程对父进程CPU资源抢占导致了持久化期间，父进程无法调度到CPU，进而请求处理时延增高。</strong></p>
+<p>至此，大家有点着急了吧，裤子都脱了，你就给我看这个。别急问题来了：</p>
+<ol>
+<li><p>对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？</p>
+</li>
+<li><p>Linux进程公平调度（CFS），说好的公平呢？</p>
+</li>
+</ol>
+<h2 id="拨云见雾"><a href="#拨云见雾" class="headerlink" title="拨云见雾"></a>拨云见雾</h2><p>上面提到的两个问题先放一放，先来看看关于linux进程调度的几个概念。</p>
+<h3 id="1-关于CFS"><a href="#1-关于CFS" class="headerlink" title="1. 关于CFS"></a>1. 关于<a href="https://en.wikipedia.org/wiki/Completely_Fair_Scheduler" target="_blank" rel="noopener">CFS</a></h3><p>这里不对CFS做详细介绍。<br>CFS简而言之，给CPU设定一个调度周期（sched_latency_ns），目标是让每个进程在一个调度周期内至少有机会运行一次，换一种说法就是每个进程等待CPU的时间最长不超过这个调度周期；然后根据进程的数量，大家平分这个调度周期内的CPU使用权，由于进程的优先级即nice值不同，分割调度周期的时候要加权；每个进程的累计运行时间保存在自己的vruntime字段里，哪个进程的vruntime最小就获得本轮运行的权利。</p>
+<blockquote>
+<p>每个CPU的运行队列都维护该运行队列中所有进程的vruntime最小值，新进程的初始vruntime值就以它所在运行队列的min_vruntime为基础来设置，与老进程保持在合理的差距范围内。这里有一个内核参数sched_child_runs_first，该参数打开（1）则可以保证子进程在fork只有有限运行。</p>
+</blockquote>
+<p>休眠的进程在唤醒时会抢占CPU吗？是的。为了保证交互式进程可以及时的获得响应，休眠进程在唤醒时会获得vruntime的补偿，所以它在唤醒时醒时极有可能抢占CPU。但是除了交互式进程以外，主动休眠的进程（调用sleep）或定时任务，往往并不要求快速响应，它们同样会在每次唤醒时获得vruntime补偿，这就导致可能对其它更重要的应用进程被抢占，从而影响整体性能。那能怎么办？这里有两个内核参数可供调整：</p>
+<ul>
+<li><p>禁用进程滑行抢占特性</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># echo NO_WAKEUP_PREEMPT &gt; /sys/kernel/debug/sched_features</span></span><br><span class="line"><span class="comment"># 唤醒的进程不会立即抢占运行中的进程，而是要等到运行进程用完时间片之后。</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>sched_wakeup_granularity_ns</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># echo 4000000 &gt; /proc/kernel/sched_wakeup_granularity_ns</span></span><br><span class="line"><span class="comment"># 只有当唤醒进程的vruntime比当前进程的vruntime小、并且两者差距(vdiff)大于sched_wakeup_granularity_ns的情况下，才可以抢占，否则不可以。值越小发生抢占的概率越高。</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="2-关于Redis-IO多路复用"><a href="#2-关于Redis-IO多路复用" class="headerlink" title="2. 关于Redis IO多路复用"></a>2. 关于Redis IO多路复用</h3><p>这里只说1点，redis的IO多路复用处理逻辑如下（详细代码见函数aeProcessEvents() ）：</p>
+<pre><code>1. 根据定时事件表计算需要等待的最短时间，判断是否有时间事件需要处理；
+2. 调用aeApiPoll()进入监听轮询，如果没有事件发生就会进入睡眠状态；
+3. 事件发生会被唤醒，处理已触发的。
+</code></pre><p><strong>这里说明主进程会频繁从睡眠状态被唤醒。</strong></p>
+<h2 id="3-关于fork子进程"><a href="#3-关于fork子进程" class="headerlink" title="3. 关于fork子进程"></a>3. 关于fork子进程</h2><p>—to be continue</p>
+
+          
         
       
     </div>
