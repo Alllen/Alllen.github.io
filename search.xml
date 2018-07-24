@@ -1,25 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search>
-  <entry>
-    <title><![CDATA[从Linux进程调度写起]]></title>
-    <url>%2F2018%2F07%2F21%2F%E4%BB%8ELinux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%86%99%E8%B5%B7%2F</url>
-    <content type="text"><![CDATA[背景话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右，初步确定是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！ 问题剖析进一步对RDB期间时延飙升现象进行了分析，发现每次RDB持久化期间，持久化子进程占用CPU高达100%，同时Redis主进程（server进程）占用CPU仅1%左右。 众所周知Redis持久化期间会fork出一个子进程，进行数据的落盘。想必你也猜到了，对的！我们对Redis进程进行了CPU绑定操作（numactl –cpubind），这样也就带来了现在这个问题，fork的继承特性导致子进程继承父进程的cpu affinity，从而父进程（redis-server）和子进程（RDB）运行在同一个CPU逻辑核上。子进程对父进程CPU资源抢占导致了持久化期间，父进程无法调度到CPU，进而请求处理时延增高。 至此，大家有点着急了吧，裤子都脱了，你就给我看这个。别急问题来了： 对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？ Linux进程公平调度（CFS），说好的公平呢？ 拨云见雾上面提到的两个问题先放一放，先来看看关于linux进程调度的几个概念。 1. 关于CFS这里不对CFS做详细介绍。CFS简而言之，给CPU设定一个调度周期（sched_latency_ns），目标是让每个进程在一个调度周期内至少有机会运行一次，换一种说法就是每个进程等待CPU的时间最长不超过这个调度周期；然后根据进程的数量，大家平分这个调度周期内的CPU使用权，由于进程的优先级即nice值不同，分割调度周期的时候要加权；每个进程的累计运行时间保存在自己的vruntime字段里，哪个进程的vruntime最小就获得本轮运行的权利。 每个CPU的运行队列都维护该运行队列中所有进程的vruntime最小值，新进程的初始vruntime值就以它所在运行队列的min_vruntime为基础来设置，与老进程保持在合理的差距范围内。这里有一个内核参数sched_child_runs_first，该参数打开（1）则可以保证子进程在fork只有有限运行。 休眠的进程在唤醒时会抢占CPU吗？是的。为了保证交互式进程可以及时的获得响应，休眠进程在唤醒时会获得vruntime的补偿，所以它在唤醒时醒时极有可能抢占CPU。但是除了交互式进程以外，主动休眠的进程（调用sleep）或定时任务，往往并不要求快速响应，它们同样会在每次唤醒时获得vruntime补偿，这就导致可能对其它更重要的应用进程被抢占，从而影响整体性能。那能怎么办？这里有两个内核参数可供调整： 禁用进程唤醒抢占特性 12# echo NO_WAKEUP_PREEMPT &gt; /sys/kernel/debug/sched_features# 唤醒的进程不会立即抢占运行中的进程，而是要等到运行进程用完时间片之后。 sched_wakeup_granularity_ns 12# echo 4000000 &gt; /proc/kernel/sched_wakeup_granularity_ns# 只有当唤醒进程的vruntime比当前进程的vruntime小、并且两者差距(vdiff)大于sched_wakeup_granularity_ns的情况下，才可以抢占，否则不可以。值越小发生抢占的概率越高。 2. 关于Redis IO多路复用这里只说1点，redis的IO多路复用处理逻辑如下（详细代码见函数aeProcessEvents() ）： 1. 根据定时事件表计算需要等待的最短时间，判断是否有时间事件需要处理； 2. 调用aeApiPoll()进入监听轮询，如果没有事件发生就会进入睡眠状态； 3. 事件发生会被唤醒，处理已触发的。 这里说明主进程会频繁从睡眠状态被唤醒。 3. 关于fork子进程fork出的子进程几乎继承了父进程的所有属性： 环境变量 进程组号 工作目录 数据段、代码段、栈段、堆 scheduler class（Redis进程为sched_other） nice值 CPU亲缘性 等等这里需要注意的是fork采用“写时拷贝”技术（COW），即内核并不是复制整个进程的地址空间，而是让父子进程共享同一个地址空间。只用在需要写入的时候才会复制地址空间，从而使各个进行拥有各自的地址空间。也就是说，资源的复制是在需要写入的时候才会进行，在此之前，只有以只读方式共享。 这是最后一段写到这里想必大家对于上面两个问题，基本已经知道答案了。对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？ Redis采用非阻塞式IO，其在遍历字典期间会持续占用CPU，而不会因为IO导致主动让出CPU，AOF同理，具体可以参看Redis持久化源码。 Linux进程公平调度（CFS），说好的公平呢？公平调度是指在两个任务都同时ready的情况下（相同优先级），可以获得相同的CPU运行时长，如果期间其中一个任务阻塞或主动让出CPU（sleep），CPU可以100%交给另一个任务。回到Redis的fork子进程，父进程在负载不足的情况下，监听的事件都未准备好时，会进入休眠状态，此时会主动让出CPU。然而，这和上面说的关于子进程唤醒的两个系统参数有什么卵关系？当然，生产环境系统禁用了唤醒抢占特性，且sched_wakeup_granularity_ns该值设置为15000000（通常默认为4000000），直接导致了父进程在被唤醒时无法抢占到CPU，进而导致了子进程无限制的抢占CPU，Redis主进程不能及时被调度。 解决方法：生产环境只是将sched_wakeup_granularity_ns修改为了4000000，问题解决。 — end]]></content>
+<search> 
+  
+    
+    <entry>
+      <title>从Linux进程调度写起</title>
+      <link href="/2018/07/21/%E4%BB%8ELinux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%86%99%E8%B5%B7/"/>
+      <url>/2018/07/21/%E4%BB%8ELinux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%86%99%E8%B5%B7/</url>
+      <content type="html"><![CDATA[<hr><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右，初步确定是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！</p><h2 id="问题剖析"><a href="#问题剖析" class="headerlink" title="问题剖析"></a>问题剖析</h2><p>进一步对RDB期间时延飙升现象进行了分析，发现每次RDB持久化期间，持久化子进程占用CPU高达100%，同时Redis主进程（server进程）占用CPU仅1%左右。</p><p>众所周知Redis持久化期间会fork出一个子进程，进行数据的落盘。想必你也猜到了，对的！我们对Redis进程进行了CPU绑定操作（numactl –cpubind），这样也就带来了现在这个问题，fork的继承特性导致子进程继承父进程的cpu affinity，从而父进程（redis-server）和子进程（RDB）运行在同一个CPU逻辑核上。<strong>子进程对父进程CPU资源抢占导致了持久化期间，父进程无法调度到CPU，进而请求处理时延增高。</strong></p><p>至此，大家有点着急了吧，裤子都脱了，你就给我看这个。别急问题来了：</p><ol><li><p>对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？</p></li><li><p>Linux进程公平调度（CFS），说好的公平呢？</p></li></ol><h2 id="拨云见雾"><a href="#拨云见雾" class="headerlink" title="拨云见雾"></a>拨云见雾</h2><p>上面提到的两个问题先放一放，先来看看关于linux进程调度的几个概念。</p><h3 id="关于CFS"><a href="#关于CFS" class="headerlink" title="关于CFS"></a>关于<a href="https://en.wikipedia.org/wiki/Completely_Fair_Scheduler" target="_blank" rel="noopener">CFS</a></h3><p>这里不对CFS做详细介绍。<br>CFS简而言之，给CPU设定一个调度周期（sched_latency_ns），目标是让每个进程在一个调度周期内至少有机会运行一次，换一种说法就是每个进程等待CPU的时间最长不超过这个调度周期；然后根据进程的数量，大家平分这个调度周期内的CPU使用权，由于进程的优先级即nice值不同，分割调度周期的时候要加权；每个进程的累计运行时间保存在自己的vruntime字段里，哪个进程的vruntime最小就获得本轮运行的权利。</p><blockquote><p>每个CPU的运行队列都维护该运行队列中所有进程的vruntime最小值，新进程的初始vruntime值就以它所在运行队列的min_vruntime为基础来设置，与老进程保持在合理的差距范围内。这里有一个内核参数sched_child_runs_first，该参数打开（1）则可以保证子进程在fork只有有限运行。</p></blockquote><p>休眠的进程在唤醒时会抢占CPU吗？是的。为了保证交互式进程可以及时的获得响应，休眠进程在唤醒时会获得vruntime的补偿，所以它在唤醒时醒时极有可能抢占CPU。但是除了交互式进程以外，主动休眠的进程（调用sleep）或定时任务，往往并不要求快速响应，它们同样会在每次唤醒时获得vruntime补偿，这就导致可能对其它更重要的应用进程被抢占，从而影响整体性能。那能怎么办？这里有两个内核参数可供调整：</p><ul><li><p>禁用进程唤醒抢占特性</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># echo NO_WAKEUP_PREEMPT &gt; /sys/kernel/debug/sched_features</span></span><br><span class="line"><span class="comment"># 唤醒的进程不会立即抢占运行中的进程，而是要等到运行进程用完时间片之后。</span></span><br></pre></td></tr></table></figure></li><li><p>sched_wakeup_granularity_ns</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># echo 4000000 &gt; /proc/kernel/sched_wakeup_granularity_ns</span></span><br><span class="line"><span class="comment"># 只有当唤醒进程的vruntime比当前进程的vruntime小、并且两者差距(vdiff)大于sched_wakeup_granularity_ns的情况下，才可以抢占，否则不可以。值越小发生抢占的概率越高。</span></span><br></pre></td></tr></table></figure></li></ul><h3 id="关于Redis-IO多路复用"><a href="#关于Redis-IO多路复用" class="headerlink" title="关于Redis IO多路复用"></a>关于Redis IO多路复用</h3><p>这里只说1点，redis的IO多路复用处理逻辑如下（详细代码见函数aeProcessEvents() ）：</p><pre><code>1. 根据定时事件表计算需要等待的最短时间，判断是否有时间事件需要处理；2. 调用aeApiPoll()进入监听轮询，如果没有事件发生就会进入睡眠状态；3. 事件发生会被唤醒，处理已触发的。</code></pre><p><strong>这里说明主进程会频繁从睡眠状态被唤醒。</strong></p><h3 id="关于fork子进程"><a href="#关于fork子进程" class="headerlink" title="关于fork子进程"></a>关于fork子进程</h3><p>fork出的子进程几乎继承了父进程的所有属性：</p><ul><li>环境变量</li><li>进程组号</li><li>工作目录</li><li>数据段、代码段、栈段、堆</li><li>scheduler class（Redis进程为sched_other）</li><li>nice值</li><li>CPU亲缘性</li><li>等等<br>这里需要注意的是fork采用“写时拷贝”技术（COW），即内核并不是复制整个进程的地址空间，而是让父子进程共享同一个地址空间。只用在需要写入的时候才会复制地址空间，从而使各个进行拥有各自的地址空间。也就是说，资源的复制是在需要写入的时候才会进行，在此之前，只有以只读方式共享。</li></ul><h2 id="这是最后一段"><a href="#这是最后一段" class="headerlink" title="这是最后一段"></a>这是最后一段</h2><p>写到这里想必大家对于上面两个问题，基本已经知道答案了。<br><strong>对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？</strong></p><p>Redis采用非阻塞式IO，其在遍历字典期间会持续占用CPU，而不会因为IO导致主动让出CPU，AOF同理，具体可以参看Redis持久化源码。</p><hr><p><strong>Linux进程公平调度（CFS），说好的公平呢？</strong><br>公平调度是指在两个任务都同时ready的情况下（相同优先级），可以获得相同的CPU运行时长，如果期间其中一个任务阻塞或主动让出CPU（sleep），CPU可以100%交给另一个任务。回到Redis的fork子进程，父进程在负载不足的情况下，监听的事件都未准备好时，会进入休眠状态，此时会主动让出CPU。<br>然而，这和上面说的关于子进程唤醒的两个系统参数有什么卵关系？当然，生产环境系统禁用了唤醒抢占特性，且sched_wakeup_granularity_ns该值设置为15000000（通常默认为4000000），直接导致了父进程在被唤醒时无法抢占到CPU，进而导致了子进程无限制的抢占CPU，Redis主进程不能及时被调度。</p><hr><p>解决方法：生产环境只是将sched_wakeup_granularity_ns修改为了4000000，问题解决。</p><p>— end</p>]]></content>
+      
       <categories>
-        <category>Linux</category>
+          
+          <category> Linux </category>
+          
       </categories>
-      <tags>
-        <tag>进程调度</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title><![CDATA[开篇]]></title>
-    <url>%2F2018%2F07%2F19%2F%E5%BC%80%E7%AF%87%2F</url>
-    <content type="text"><![CDATA[花了两个晚上总算把博客搭起来了。建个博客旨在驱动自己去深入学习一些技术，锻炼自己的总结能力，及时记录所学所想，如果同时你能够帮到别人一二，自然更好。 从今天起锻炼，写博，卖马为生! 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。 —— 王小波]]></content>
+      
+      
+        <tags>
+            
+            <tag> 进程调度 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
+      <title>开篇</title>
+      <link href="/2018/07/19/%E5%BC%80%E7%AF%87/"/>
+      <url>/2018/07/19/%E5%BC%80%E7%AF%87/</url>
+      <content type="html"><![CDATA[<p>花了两个晚上总算把博客搭起来了。建个博客旨在驱动自己去深入学习一些技术，锻炼自己的总结能力，及时记录所学所想，如果同时你能够帮到别人一二，自然更好。</p><p>从今天起<strong>锻炼，写博，卖马为生!</strong></p><blockquote><p>傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。</p><p align="right">—— 王小波</p></blockquote>]]></content>
+      
       <categories>
-        <category>其他</category>
+          
+          <category> 其他 </category>
+          
       </categories>
-      <tags>
-        <tag>其他</tag>
-      </tags>
-  </entry>
+      
+      
+        <tags>
+            
+            <tag> 其他 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+  
+  
 </search>
