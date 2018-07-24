@@ -395,7 +395,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2018-07-25 00:29:52" itemprop="dateModified" datetime="2018-07-25T00:29:52+08:00">2018-07-25</time>
+                <time title="修改时间：2018-07-25 00:31:59" itemprop="dateModified" datetime="2018-07-25T00:31:59+08:00">2018-07-25</time>
               
             
           </span>
@@ -460,7 +460,7 @@
 </li>
 </ol>
 <h2 id="拨云见雾"><a href="#拨云见雾" class="headerlink" title="拨云见雾"></a>拨云见雾</h2><p>上面提到的两个问题先放一放，先来看看关于linux进程调度的几个概念。</p>
-<h3 id="关于CFS"><a href="#关于CFS" class="headerlink" title="关于CFS"></a>关于<a href="https://en.wikipedia.org/wiki/Completely_Fair_Scheduler" target="_blank" rel="noopener">CFS</a></h3><p>这里不对CFS做详细介绍。<br>CFS简而言之，给CPU设定一个调度周期（sched_latency_ns），目标是让每个进程在一个调度周期内至少有机会运行一次，换一种说法就是每个进程等待CPU的时间最长不超过这个调度周期；然后根据进程的数量，大家平分这个调度周期内的CPU使用权，由于进程的优先级即nice值不同，分割调度周期的时候要加权；每个进程的累计运行时间保存在自己的vruntime字段里，哪个进程的vruntime最小就获得本轮运行的权利。</p>
+<h3 id="1-关于CFS"><a href="#1-关于CFS" class="headerlink" title="1. 关于CFS"></a>1. 关于<a href="https://en.wikipedia.org/wiki/Completely_Fair_Scheduler" target="_blank" rel="noopener">CFS</a></h3><p>这里不对CFS做详细介绍。<br>CFS简而言之，给CPU设定一个调度周期（sched_latency_ns），目标是让每个进程在一个调度周期内至少有机会运行一次，换一种说法就是每个进程等待CPU的时间最长不超过这个调度周期；然后根据进程的数量，大家平分这个调度周期内的CPU使用权，由于进程的优先级即nice值不同，分割调度周期的时候要加权；每个进程的累计运行时间保存在自己的vruntime字段里，哪个进程的vruntime最小就获得本轮运行的权利。</p>
 <blockquote>
 <p>每个CPU的运行队列都维护该运行队列中所有进程的vruntime最小值，新进程的初始vruntime值就以它所在运行队列的min_vruntime为基础来设置，与老进程保持在合理的差距范围内。这里有一个内核参数sched_child_runs_first，该参数打开（1）则可以保证子进程在fork只有有限运行。</p>
 </blockquote>
@@ -473,12 +473,12 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># echo 4000000 &gt; /proc/kernel/sched_wakeup_granularity_ns</span></span><br><span class="line"><span class="comment"># 只有当唤醒进程的vruntime比当前进程的vruntime小、并且两者差距(vdiff)大于sched_wakeup_granularity_ns的情况下，才可以抢占，否则不可以。值越小发生抢占的概率越高。</span></span><br></pre></td></tr></table></figure>
 </li>
 </ul>
-<h3 id="关于Redis-IO多路复用"><a href="#关于Redis-IO多路复用" class="headerlink" title="关于Redis IO多路复用"></a>关于Redis IO多路复用</h3><p>这里只说1点，redis的IO多路复用处理逻辑如下（详细代码见函数aeProcessEvents() ）：</p>
+<h3 id="2-关于Redis-IO多路复用"><a href="#2-关于Redis-IO多路复用" class="headerlink" title="2. 关于Redis IO多路复用"></a>2. 关于Redis IO多路复用</h3><p>这里只说1点，redis的IO多路复用处理逻辑如下（详细代码见函数aeProcessEvents() ）：</p>
 <pre><code>1. 根据定时事件表计算需要等待的最短时间，判断是否有时间事件需要处理；
 2. 调用aeApiPoll()进入监听轮询，如果没有事件发生就会进入睡眠状态；
 3. 事件发生会被唤醒，处理已触发的。
 </code></pre><p><strong>这里说明主进程会频繁从睡眠状态被唤醒。</strong></p>
-<h3 id="关于fork子进程"><a href="#关于fork子进程" class="headerlink" title="关于fork子进程"></a>关于fork子进程</h3><p>fork出的子进程几乎继承了父进程的所有属性：</p>
+<h3 id="3-关于fork子进程"><a href="#3-关于fork子进程" class="headerlink" title="3. 关于fork子进程"></a>3. 关于fork子进程</h3><p>fork出的子进程几乎继承了父进程的所有属性：</p>
 <ul>
 <li>环境变量</li>
 <li>进程组号</li>
