@@ -116,7 +116,7 @@
 <meta property="og:site_name" content="Wanger&#39;s Blog">
 <meta property="og:description" content="启动入口类1FlinkYarnSessionCli 启动流程 加载配置文件flink-conf.yaml 认证信息加载,Flink提供了三个工厂方法用于加载Hadoop，jaas，ZooKeeper相关安全认证信息，并执行install方法进行认证。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-07-29T16:14:06.818Z">
+<meta property="og:updated_time" content="2018-07-29T16:16:59.677Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Flink源码学习-yarn session启动">
 <meta name="twitter:description" content="启动入口类1FlinkYarnSessionCli 启动流程 加载配置文件flink-conf.yaml 认证信息加载,Flink提供了三个工厂方法用于加载Hadoop，jaas，ZooKeeper相关安全认证信息，并执行install方法进行认证。">
@@ -395,7 +395,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2018-07-30 00:14:06" itemprop="dateModified" datetime="2018-07-30T00:14:06+08:00">2018-07-30</time>
+                <time title="修改时间：2018-07-30 00:16:59" itemprop="dateModified" datetime="2018-07-30T00:16:59+08:00">2018-07-30</time>
               
             
           </span>
@@ -478,10 +478,10 @@
 <p>这里有一点关于classspath需要注意，添加classpath顺序为yarn.per-job-cluster.include-user-jar参数控制，是否优先加载用户jar包，可以避免用户jar包与系统jar包冲突。<br>yarn.per-job-cluster.include-user-jar，该参数值为first则会将用户jar包添加在classpath的前面。默认按照字母排序添加用户jar包和系统jar包。</p>
 </blockquote>
 </li>
-<li><p>启动jobmanager（yarnClient.submitApplication(appContext)），获取jobmanager host和port</p>
+<li><p>启动application master（yarnClient.submitApplication(appContext)），获取jobmanager host和port</p>
 </li>
 </ol>
-<p>—end.<br>下一篇将详细介绍JM及TM启动过程。</p>
+<p>至此yarn集群上的am已经启动成功，下一章将详细介绍JM/TM启动及注册过程。<br>—end.</p>
 
       
     </div>
