@@ -118,7 +118,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/列式行式存储.png">
 <meta property="og:image" content="http://yoursite.com/images/图片2.png">
-<meta property="og:updated_time" content="2019-04-25T16:59:23.262Z">
+<meta property="og:updated_time" content="2019-04-25T17:10:30.399Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="各种大数据名词一览">
 <meta name="twitter:description" content="对常见的大数据名词做简单对比说明： OLAP &amp;amp; OLTPOLTP（on-line transaction processing）：OLTP是传统的关系型数据库的主要应用，主要是基本的、日常的事务处理。通常为高可用的在线系统，以小的事务以及小的查询为主。">
@@ -381,7 +381,7 @@
                 
               
 
-              <time title="创建时间：2019-04-26 00:57:33 / 修改时间：00:59:23" itemprop="dateCreated datePublished" datetime="2019-04-26T00:57:33+08:00">2019-04-26</time>
+              <time title="创建时间：2019-04-26 00:57:33 / 修改时间：01:10:30" itemprop="dateCreated datePublished" datetime="2019-04-26T00:57:33+08:00">2019-04-26</time>
             
 
             
@@ -442,42 +442,63 @@
 <table>
 <thead>
 <tr>
-<th>数据处理类型</th>
-<th style="text-align:right">OLTP</th>
+<th style="text-align:center">数据处理类型</th>
+<th style="text-align:center">OLTP</th>
 <th style="text-align:center">OLAP</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>面向对象</td>
-<td style="text-align:right">业务开发人员</td>
+<td style="text-align:center">面向对象</td>
+<td style="text-align:center">业务开发人员</td>
 <td style="text-align:center">分析决策人员</td>
 </tr>
 <tr>
-<td>功能实现</td>
-<td style="text-align:right">日常事务处理</td>
+<td style="text-align:center">功能实现</td>
+<td style="text-align:center">日常事务处理</td>
 <td style="text-align:center">面向分析决策</td>
 </tr>
 <tr>
-<td>数据模型</td>
-<td style="text-align:right">关系型</td>
+<td style="text-align:center">数据模型</td>
+<td style="text-align:center">关系型</td>
 <td style="text-align:center">多维</td>
 </tr>
 <tr>
-<td>处理数据量</td>
-<td style="text-align:right">通常为几条或几十条</td>
+<td style="text-align:center">处理数据量</td>
+<td style="text-align:center">通常为几条或几十条</td>
 <td style="text-align:center">百万或千万条记录</td>
 </tr>
 <tr>
-<td>操作类型</td>
-<td style="text-align:right">DDL DML</td>
+<td style="text-align:center">操作类型</td>
+<td style="text-align:center">DDL DML</td>
 <td style="text-align:center">DML</td>
 </tr>
 </tbody>
 </table>
 <h2 id="列式存储-amp-行式存储"><a href="#列式存储-amp-行式存储" class="headerlink" title="列式存储 &amp; 行式存储"></a>列式存储 &amp; 行式存储</h2><p>一张图说明列式存储和行式存储的区别<br><img src="/images/列式行式存储.png" alt=""><br><strong>行式存储阵营</strong>：传统的关系型数据库，如 Oracle、DB2、MySQL、SQL SERVER。<br><strong>列式存储阵营</strong>：Hbase、HP Vertica、EMC Greenplum 等分布式数据库均采用列式存储。</p>
 <p>列式存储在做查询的优势：<br><img src="/images/图片2.png" alt=""></p>
-<h2 id="结构化数据-amp-半结构化数据-amp-非结构化数据"><a href="#结构化数据-amp-半结构化数据-amp-非结构化数据" class="headerlink" title="结构化数据 &amp; 半结构化数据 &amp; 非结构化数据"></a>结构化数据 &amp; 半结构化数据 &amp; 非结构化数据</h2><p><strong>结构化数据</strong>：可以使用关系型数据库表示和存储，表现为二维形式的数据。一般特点是：数据以行为单位，一行数据表示一个实体的信息，每一行数据的属性是相同的。结构化的数据存储和排列是很有规律的，这对查询和修改等操作很有帮助，但扩展性差。<br>| 姓名 | 年龄   |  性别 |<br>| — | — | —|<br>| 王二 | 30   |  男  |<br>| 张三 | 25   |  男  |</p>
+<h2 id="结构化数据-amp-半结构化数据-amp-非结构化数据"><a href="#结构化数据-amp-半结构化数据-amp-非结构化数据" class="headerlink" title="结构化数据 &amp; 半结构化数据 &amp; 非结构化数据"></a>结构化数据 &amp; 半结构化数据 &amp; 非结构化数据</h2><p><strong>结构化数据</strong>：可以使用关系型数据库表示和存储，表现为二维形式的数据。一般特点是：数据以行为单位，一行数据表示一个实体的信息，每一行数据的属性是相同的。结构化的数据存储和排列是很有规律的，这对查询和修改等操作很有帮助，但扩展性差。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">姓名</th>
+<th style="text-align:center">年龄</th>
+<th style="text-align:center">性别</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">王二</td>
+<td style="text-align:center">30</td>
+<td style="text-align:center">男</td>
+</tr>
+<tr>
+<td style="text-align:center">张三</td>
+<td style="text-align:center">25</td>
+<td style="text-align:center">男</td>
+</tr>
+</tbody>
+</table>
 <p><strong>半结构化数据</strong>：半结构化数据是结构化数据的一种形式，它并不符合关系型数据库或其他数据表的形式关联起来的数据模型结构，但包含相关标记，用来分隔语义元素以及对记录和字段进行分层，因此它也被称为自描述的结构。常见的半结构数据有XML和JSON。扩展性好。</p>
 <p><strong>非结构化数据</strong>：没有固定结构的数据，各种文档、图片、视频、音频都属于非结构化数据。对于这类数据，一般存储为二进制的数据格式。</p>
 <h2 id="关系型数据库-amp-NoSQL"><a href="#关系型数据库-amp-NoSQL" class="headerlink" title="关系型数据库 &amp; NoSQL"></a>关系型数据库 &amp; NoSQL</h2><p><strong>SQL (Structured Query Language) 数据库</strong>：指关系型数据库，主要代表：SQL Server，Oracle，MySQL，PostgreSQL。</p>
