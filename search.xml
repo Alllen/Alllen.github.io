@@ -1,133 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search> 
-  
-    
-    <entry>
-      <title>深入理解java虚拟机学习笔记 - 2</title>
-      <link href="/2019/06/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-2/"/>
-      <url>/2019/06/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-2/</url>
-      <content type="html"><![CDATA[<hr><h3 id="类文件结构"><a href="#类文件结构" class="headerlink" title="类文件结构"></a>类文件结构</h3><ul><li>class文件魔鬼数字值为：0xCAFEBABE</li><li>虚拟机把描述类的Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的java类型。</li><li>类从被加载到虚拟机内存开始，到卸载出内存为止。经历<strong>加载Loading</strong> -&gt; <strong>校验Verification</strong> -&gt; <strong>准备Preparation</strong> -&gt; <strong>解析Resolution</strong> -&gt; <strong>初始化Initialization</strong> -&gt; <strong>使用Using</strong> -&gt; <strong>卸载Unloading</strong></li></ul><a id="more"></a><p>###虚拟机加载机制</p><ul><li>对于静态字段，只有直接定义该字段的类才会被初始化。例如子类中调用父类定义的静态字段，只会触发父类的初始化，而不会触发子类的初始化。</li><li>通过数组定义的引用类不会触发此类的初始化。例如下面的语句：</li></ul><blockquote><p>SuperClass[] sca = new SuperClass[10]</p></blockquote><ul><li>常量在编译阶段会存入调用类的常量池，本质上并没有直接引用到定义常量的类，因此不会触发定义常量类的初始化。</li></ul><h3 id="类的加载过程"><a href="#类的加载过程" class="headerlink" title="类的加载过程"></a>类的加载过程</h3><ul><li>加载：加载阶段会将类的二进制流文件按照虚拟机所需的格式存储在<strong>方法区</strong>中。</li><li>验证：验证是为了确保Class文件的字节流中包含的信息符合虚拟机的要求。此时如果验证到不符合Class文件格式的约束，则抛出java.lang.VerifyError异常。</li><li>准备：该阶段正式为类变量分配内存（方法区），并设置类变量的初始值。<strong>该阶段仅包括类变量，即被static修饰的变量</strong>。</li><li>解析：解析阶段是虚拟机将常量池内的符号引用替换为直接引用的过程。</li><li>初始化：初始化阶段才是真正开始执行类中定义的java程序代码。</li></ul><h3 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h3><p>任意一个类，都需要由加载它的类加载器和类本身一同确立其在Java虚拟机中的唯一性。</p><ul><li>启动类加载器（Bootstrap ClassLoader）：负责将<strong><em>$JAVA_HOME/lib</em></strong>目录下的活被-Xbootclasspath指定的路径的类库加载到虚拟机内存中。</li><li>扩展类加载器（Extension ClassLoader）：负责加载<strong><em>$JAVA_HOME/lib/ext</em></strong>目录中或被java.ext.dirs指定的类库。</li><li>应用类加载器（Application ClassLoader）：也成系统加载器，负责加载用户路径（Classpath）上指定的类库。</li></ul><blockquote><p>双亲委派工作过程：如果一个类加载器收到了类加载的请求，首先不会自己尝试加载这个类，而是把这个请求委派给父类加载器去完成，每一个层次的类加载器都是如此。只有当父加载器反馈自己无法完成这个加载请求（他的搜索范围内没有找到所需的类）时，子加载类才会尝试自己去加载。</p></blockquote>]]></content>
-      
+<search>
+  <entry>
+    <title><![CDATA[深入理解java虚拟机学习笔记 - 2]]></title>
+    <url>%2F2019%2F06%2F04%2F%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-2%2F</url>
+    <content type="text"><![CDATA[类文件结构 class文件魔鬼数字值为：0xCAFEBABE 虚拟机把描述类的Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的java类型。 类从被加载到虚拟机内存开始，到卸载出内存为止。经历加载Loading -&gt; 校验Verification -&gt; 准备Preparation -&gt; 解析Resolution -&gt; 初始化Initialization -&gt; 使用Using -&gt; 卸载Unloading 虚拟机加载机制 对于静态字段，只有直接定义该字段的类才会被初始化。例如子类中调用父类定义的静态字段，只会触发父类的初始化，而不会触发子类的初始化。 通过数组定义的引用类不会触发此类的初始化。例如下面的语句： SuperClass[] sca = new SuperClass[10] 常量在编译阶段会存入调用类的常量池，本质上并没有直接引用到定义常量的类，因此不会触发定义常量类的初始化。 类的加载过程 加载：加载阶段会将类的二进制流文件按照虚拟机所需的格式存储在方法区中。 验证：验证是为了确保Class文件的字节流中包含的信息符合虚拟机的要求。此时如果验证到不符合Class文件格式的约束，则抛出java.lang.VerifyError异常。 准备：该阶段正式为类变量分配内存（方法区），并设置类变量的初始值。该阶段仅包括类变量，即被static修饰的变量。 解析：解析阶段是虚拟机将常量池内的符号引用替换为直接引用的过程。 初始化：初始化阶段才是真正开始执行类中定义的java程序代码。 类加载器任意一个类，都需要由加载它的类加载器和类本身一同确立其在Java虚拟机中的唯一性。 启动类加载器（Bootstrap ClassLoader）：负责将$JAVA_HOME/lib目录下的活被-Xbootclasspath指定的路径的类库加载到虚拟机内存中。 扩展类加载器（Extension ClassLoader）：负责加载$JAVA_HOME/lib/ext目录中或被java.ext.dirs指定的类库。 应用类加载器（Application ClassLoader）：也成系统加载器，负责加载用户路径（Classpath）上指定的类库。 双亲委派工作过程：如果一个类加载器收到了类加载的请求，首先不会自己尝试加载这个类，而是把这个请求委派给父类加载器去完成，每一个层次的类加载器都是如此。只有当父加载器反馈自己无法完成这个加载请求（他的搜索范围内没有找到所需的类）时，子加载类才会尝试自己去加载。]]></content>
       <categories>
-          
-          <category> JAVA </category>
-          
+        <category>JAVA</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> 编程学习 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    <entry>
-      <title>深入理解java虚拟机学习笔记 - 1</title>
-      <link href="/2019/05/24/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/"/>
-      <url>/2019/05/24/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/</url>
-      <content type="html"><![CDATA[<hr><h3 id="一、垃圾回收"><a href="#一、垃圾回收" class="headerlink" title="一、垃圾回收"></a>一、垃圾回收</h3><ol><li>对象优先在Eden分配，Eden没有足够的空间时，将进行Minor GC。</li><li>长期存活的对象将进入老年代：</li></ol><p><strong><em>虚拟机如何判断哪些对象应该放在老年代中</em></strong>：虚拟机给每个对象定义一个age，对象在Eden中出生并经过第一次Minor GC后仍然存活，并且能被Survivor容纳的话，将被一道Survivor中，并且此时对象age为1。对象在Survivor中每熬过一次Minor GC，age增加1岁，当age增加到一定程度（-XX:+MaxTenuringThreshold）将被晋升到老年代中。<br><a id="more"></a><br><strong><em>另外一种动态对象年龄判定</em></strong>：如果Survivor中相同age的所有对象大小大于Survivor空间的一半，年龄大于等于该年龄的对象可以直接进入老年代，无需等待MaxTenuringTHreshold。</p><h3 id="二、调优案例分析"><a href="#二、调优案例分析" class="headerlink" title="二、调优案例分析"></a>二、调优案例分析</h3><ol><li>32位Windows平台对于内存的限制时2GB，其中划出1.6GB给java堆内存。Direct Memory内存并不算入1.6GB内，因此最大也只能占用0.4GB。Direct Memory不能像新生代老年代那样，发现空间不足时通知GC，而是需要等到Full GC时顺便清理掉内存的废弃对象。</li><li>JNI代码调用本地库，所使用的内存不在堆中。</li></ol><h3 id="ps："><a href="#ps：" class="headerlink" title="ps："></a>ps：</h3><ol><li>jinfo可使用-sysprops选项将虚拟机进程的System.getProperties()打印出来。还可以通过-flag[+|-]那么或者-flag name=value修改一部分运行期可写的虚拟机参数能力。</li><li>dump文件：-XX:+HeapDumpOnOutOfMemoryError，kill -3。</li><li>jstack -l （输出锁附加信息） -F（正常请求不被响应时，强制输出） -m（如果调用本地方法，可以显示C/C++的堆栈）</li></ol>]]></content>
-      
+      <tags>
+        <tag>编程学习</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[深入理解java虚拟机学习笔记 - 1]]></title>
+    <url>%2F2019%2F05%2F24%2F%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1%2F</url>
+    <content type="text"><![CDATA[一、垃圾回收 对象优先在Eden分配，Eden没有足够的空间时，将进行Minor GC。 长期存活的对象将进入老年代： 虚拟机如何判断哪些对象应该放在老年代中：虚拟机给每个对象定义一个age，对象在Eden中出生并经过第一次Minor GC后仍然存活，并且能被Survivor容纳的话，将被一道Survivor中，并且此时对象age为1。对象在Survivor中每熬过一次Minor GC，age增加1岁，当age增加到一定程度（-XX:+MaxTenuringThreshold）将被晋升到老年代中。另外一种动态对象年龄判定：如果Survivor中相同age的所有对象大小大于Survivor空间的一半，年龄大于等于该年龄的对象可以直接进入老年代，无需等待MaxTenuringTHreshold。 二、调优案例分析 32位Windows平台对于内存的限制时2GB，其中划出1.6GB给java堆内存。Direct Memory内存并不算入1.6GB内，因此最大也只能占用0.4GB。Direct Memory不能像新生代老年代那样，发现空间不足时通知GC，而是需要等到Full GC时顺便清理掉内存的废弃对象。 JNI代码调用本地库，所使用的内存不在堆中。 ps： jinfo可使用-sysprops选项将虚拟机进程的System.getProperties()打印出来。还可以通过-flag[+|-]那么或者-flag name=value修改一部分运行期可写的虚拟机参数能力。 dump文件：-XX:+HeapDumpOnOutOfMemoryError，kill -3。 jstack -l （输出锁附加信息） -F（正常请求不被响应时，强制输出） -m（如果调用本地方法，可以显示C/C++的堆栈）]]></content>
       <categories>
-          
-          <category> JAVA </category>
-          
+        <category>JAVA</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> 编程学习 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    <entry>
-      <title>各种大数据名词一览</title>
-      <link href="/2019/04/26/%E5%90%84%E7%A7%8D%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%90%8D%E8%AF%8D%E4%B8%80%E8%A7%88/"/>
-      <url>/2019/04/26/%E5%90%84%E7%A7%8D%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%90%8D%E8%AF%8D%E4%B8%80%E8%A7%88/</url>
-      <content type="html"><![CDATA[<p>对常见的大数据名词做简单对比说明：</p><h2 id="OLAP-amp-OLTP"><a href="#OLAP-amp-OLTP" class="headerlink" title="OLAP &amp; OLTP"></a>OLAP &amp; OLTP</h2><p><strong>OLTP（on-line transaction processing）</strong>：OLTP是传统的关系型数据库的主要应用，主要是基本的、日常的事务处理。通常为高可用的在线系统，以小的事务以及小的查询为主。<br><a id="more"></a><br><strong>OLAP（On-Line Analytical Processing）</strong>：OLAP是数据仓库系统的主要应用，支持复杂的分析操作，侧重决策支持，并且提供直观易懂的查询结果。通常一条语句的执行时间可能会非常长，读取的数据也非常多。常使用分区技术和并行技术。</p><table><thead><tr><th style="text-align:center">数据处理类型</th><th style="text-align:center">OLTP</th><th style="text-align:center">OLAP</th></tr></thead><tbody><tr><td style="text-align:center">面向对象</td><td style="text-align:center">业务开发人员</td><td style="text-align:center">分析决策人员</td></tr><tr><td style="text-align:center">功能实现</td><td style="text-align:center">日常事务处理</td><td style="text-align:center">面向分析决策</td></tr><tr><td style="text-align:center">数据模型</td><td style="text-align:center">关系型</td><td style="text-align:center">多维</td></tr><tr><td style="text-align:center">处理数据量</td><td style="text-align:center">通常为几条或几十条</td><td style="text-align:center">百万或千万条记录</td></tr><tr><td style="text-align:center">操作类型</td><td style="text-align:center">DDL DML</td><td style="text-align:center">DML</td></tr></tbody></table><h2 id="列式存储-amp-行式存储"><a href="#列式存储-amp-行式存储" class="headerlink" title="列式存储 &amp; 行式存储"></a>列式存储 &amp; 行式存储</h2><p>一张图说明列式存储和行式存储的区别<br><img src="/images/列式行式存储.png" alt=""><br><strong>行式存储阵营</strong>：传统的关系型数据库，如 Oracle、DB2、MySQL、SQL SERVER。<br><strong>列式存储阵营</strong>：Hbase、HP Vertica、EMC Greenplum 等分布式数据库均采用列式存储。</p><p>列式存储在做查询的优势：<br><img src="/images/图片2.png" alt=""></p><h2 id="结构化数据-amp-半结构化数据-amp-非结构化数据"><a href="#结构化数据-amp-半结构化数据-amp-非结构化数据" class="headerlink" title="结构化数据 &amp; 半结构化数据 &amp; 非结构化数据"></a>结构化数据 &amp; 半结构化数据 &amp; 非结构化数据</h2><p><strong>结构化数据</strong>：可以使用关系型数据库表示和存储，表现为二维形式的数据。一般特点是：数据以行为单位，一行数据表示一个实体的信息，每一行数据的属性是相同的。结构化的数据存储和排列是很有规律的，这对查询和修改等操作很有帮助，但扩展性差。</p><table><thead><tr><th style="text-align:center">姓名</th><th style="text-align:center">年龄</th><th style="text-align:center">性别</th></tr></thead><tbody><tr><td style="text-align:center">王二</td><td style="text-align:center">30</td><td style="text-align:center">男</td></tr><tr><td style="text-align:center">张三</td><td style="text-align:center">25</td><td style="text-align:center">男</td></tr></tbody></table><p><strong>半结构化数据</strong>：半结构化数据是结构化数据的一种形式，它并不符合关系型数据库或其他数据表的形式关联起来的数据模型结构，但包含相关标记，用来分隔语义元素以及对记录和字段进行分层，因此它也被称为自描述的结构。常见的半结构数据有XML和JSON。扩展性好。</p><p><strong>非结构化数据</strong>：没有固定结构的数据，各种文档、图片、视频、音频都属于非结构化数据。对于这类数据，一般存储为二进制的数据格式。</p><h2 id="关系型数据库-amp-NoSQL"><a href="#关系型数据库-amp-NoSQL" class="headerlink" title="关系型数据库 &amp; NoSQL"></a>关系型数据库 &amp; NoSQL</h2><p><strong>SQL (Structured Query Language) 数据库</strong>：指关系型数据库，主要代表：SQL Server，Oracle，MySQL，PostgreSQL。</p><blockquote><ul><li>优点：事务处理—保持数据的一致性；以标准化为前提，数据更新的开销很小；可以进行Join等复杂查询。</li><li>缺点：扩展困难；读写慢；容量有限</li></ul></blockquote><p><strong>NoSQL（Not Only SQL）非关系型数据库</strong>：主要代表：HBase，MongoDB，Redis，Neo4j</p><blockquote><ul><li>优点：扩展简单；快速读写（例如Redis）；成本低（分布式数据库多为开源软件）</li><li>缺点：SQL支持不足；</li></ul></blockquote>]]></content>
-      
+      <tags>
+        <tag>编程学习</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[各种大数据名词一览]]></title>
+    <url>%2F2019%2F04%2F26%2F%E5%90%84%E7%A7%8D%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%90%8D%E8%AF%8D%E4%B8%80%E8%A7%88%2F</url>
+    <content type="text"><![CDATA[对常见的大数据名词做简单对比说明： OLAP &amp; OLTPOLTP（on-line transaction processing）：OLTP是传统的关系型数据库的主要应用，主要是基本的、日常的事务处理。通常为高可用的在线系统，以小的事务以及小的查询为主。OLAP（On-Line Analytical Processing）：OLAP是数据仓库系统的主要应用，支持复杂的分析操作，侧重决策支持，并且提供直观易懂的查询结果。通常一条语句的执行时间可能会非常长，读取的数据也非常多。常使用分区技术和并行技术。 数据处理类型 OLTP OLAP 面向对象 业务开发人员 分析决策人员 功能实现 日常事务处理 面向分析决策 数据模型 关系型 多维 处理数据量 通常为几条或几十条 百万或千万条记录 操作类型 DDL DML DML 列式存储 &amp; 行式存储一张图说明列式存储和行式存储的区别行式存储阵营：传统的关系型数据库，如 Oracle、DB2、MySQL、SQL SERVER。列式存储阵营：Hbase、HP Vertica、EMC Greenplum 等分布式数据库均采用列式存储。 列式存储在做查询的优势： 结构化数据 &amp; 半结构化数据 &amp; 非结构化数据结构化数据：可以使用关系型数据库表示和存储，表现为二维形式的数据。一般特点是：数据以行为单位，一行数据表示一个实体的信息，每一行数据的属性是相同的。结构化的数据存储和排列是很有规律的，这对查询和修改等操作很有帮助，但扩展性差。 姓名 年龄 性别 王二 30 男 张三 25 男 半结构化数据：半结构化数据是结构化数据的一种形式，它并不符合关系型数据库或其他数据表的形式关联起来的数据模型结构，但包含相关标记，用来分隔语义元素以及对记录和字段进行分层，因此它也被称为自描述的结构。常见的半结构数据有XML和JSON。扩展性好。 非结构化数据：没有固定结构的数据，各种文档、图片、视频、音频都属于非结构化数据。对于这类数据，一般存储为二进制的数据格式。 关系型数据库 &amp; NoSQLSQL (Structured Query Language) 数据库：指关系型数据库，主要代表：SQL Server，Oracle，MySQL，PostgreSQL。 优点：事务处理—保持数据的一致性；以标准化为前提，数据更新的开销很小；可以进行Join等复杂查询。 缺点：扩展困难；读写慢；容量有限 NoSQL（Not Only SQL）非关系型数据库：主要代表：HBase，MongoDB，Redis，Neo4j 优点：扩展简单；快速读写（例如Redis）；成本低（分布式数据库多为开源软件） 缺点：SQL支持不足；]]></content>
       <categories>
-          
-          <category> Bigdata </category>
-          
+        <category>Bigdata</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> 名词释义 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    <entry>
-      <title>Flink源码学习-yarn session启动</title>
-      <link href="/2018/07/28/Flink%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0-yarn-session%E5%90%AF%E5%8A%A8/"/>
-      <url>/2018/07/28/Flink%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0-yarn-session%E5%90%AF%E5%8A%A8/</url>
-      <content type="html"><![CDATA[<hr><h2 id="启动入口类"><a href="#启动入口类" class="headerlink" title="启动入口类"></a>启动入口类</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FlinkYarnSessionCli</span><br></pre></td></tr></table></figure><h2 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h2><ol><li>加载配置文件flink-conf.yaml</li><li>认证信息加载,Flink提供了三个工厂方法用于加载Hadoop，jaas，ZooKeeper相关安全认证信息，并执行install方法进行认证。<a id="more"></a></li></ol><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Java Authentication and Authorization Service (JAAS): JaasModule</span><br><span class="line">Hadoop&apos;s User Group Information (UGI): HadoopModule</span><br><span class="line">ZooKeeper&apos;s process-wide security settings.: ZooKeeperModule</span><br></pre></td></tr></table></figure><p>命令处理逻辑：</p><ul><li>-q ：查询yarn上的资源，包括每个nm上的内存/vcore/状态/以及container数量。</li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public String getClusterDescription()</span><br></pre></td></tr></table></figure><ul><li>-yid：连接指定applicationid，获取指定rpc地址和端口，创建YarnClusterClient，并进入交互模式。</li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static void runInteractiveCli(YarnClusterClient yarnCluster, boolean readConsoleInput)</span><br></pre></td></tr></table></figure><ul><li>创建一个application</li></ul><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">AbstractYarnClusterDescriptor yarnDescriptor;</span><br><span class="line">try &#123;</span><br><span class="line">//设置yarncluster详细信息</span><br><span class="line">yarnDescriptor = createDescriptor(configuration, configurationDirectory, null, cmd);</span><br><span class="line">&#125; catch (Exception e) &#123;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//设置TM JM SLOT信息</span><br><span class="line">final ClusterSpecification clusterSpecification = createClusterSpecification(yarnDescriptor.getFlinkConfiguration(), cmd)</span><br><span class="line"></span><br><span class="line">//部署集群</span><br><span class="line">yarnCluster = yarnDescriptor.deploySessionCluster(clusterSpecification);</span><br><span class="line">...</span><br><span class="line">//交互模式或detach模式运行</span><br><span class="line">if (detachedMode) &#123;</span><br><span class="line">// print info and quit:</span><br><span class="line">LOG.info(&quot;The Flink YARN client has been started in detached mode. In order to stop &quot; +</span><br><span class="line">&quot;Flink on YARN, use the following command or a YARN web interface to stop it:\n&quot; +</span><br><span class="line">&quot;yarn application -kill &quot; + yarnCluster.getApplicationId());</span><br><span class="line">yarnCluster.waitForClusterToBeReady();</span><br><span class="line">yarnCluster.disconnect();</span><br><span class="line">&#125; else &#123;</span><br><span class="line">runInteractiveCli(yarnCluster, acceptInteractiveInput);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><ol><li><p>构造yarn客户端，若指定了-q queue，则确保yarn 上存在该队列</p></li><li><p>createApplication，创建application，并判断资源是否足够。</p></li><li>添加启动所需文件（包括-t shipfile，logback，log4j，lib目录下jar）</li><li><p>为yarn添加local resource，上传文件至HDFS，添加classpath。</p><blockquote><p>这里有一点关于classspath需要注意，添加classpath顺序为yarn.per-job-cluster.include-user-jar参数控制，是否优先加载用户jar包，可以避免用户jar包与系统jar包冲突。<br>yarn.per-job-cluster.include-user-jar，该参数值为first则会将用户jar包添加在classpath的前面。默认按照字母排序添加用户jar包和系统jar包。</p></blockquote></li><li><p>启动application master（yarnClient.submitApplication(appContext)），获取jobmanager host和port</p></li></ol><p>至此yarn集群上的am已经启动成功，下一章将详细介绍JM/TM启动及注册过程。<br>—end.</p>]]></content>
-      
+      <tags>
+        <tag>名词释义</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Flink源码学习-yarn session启动]]></title>
+    <url>%2F2018%2F07%2F28%2FFlink%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0-yarn-session%E5%90%AF%E5%8A%A8%2F</url>
+    <content type="text"><![CDATA[启动入口类1FlinkYarnSessionCli 启动流程 加载配置文件flink-conf.yaml 认证信息加载,Flink提供了三个工厂方法用于加载Hadoop，jaas，ZooKeeper相关安全认证信息，并执行install方法进行认证。 123Java Authentication and Authorization Service (JAAS): JaasModuleHadoop&apos;s User Group Information (UGI): HadoopModuleZooKeeper&apos;s process-wide security settings.: ZooKeeperModule 命令处理逻辑： -q ：查询yarn上的资源，包括每个nm上的内存/vcore/状态/以及container数量。 1public String getClusterDescription() -yid：连接指定applicationid，获取指定rpc地址和端口，创建YarnClusterClient，并进入交互模式。 1public static void runInteractiveCli(YarnClusterClient yarnCluster, boolean readConsoleInput) 创建一个application 12345678910111213141516171819202122232425AbstractYarnClusterDescriptor yarnDescriptor; try &#123; //设置yarncluster详细信息 yarnDescriptor = createDescriptor(configuration, configurationDirectory, null, cmd); &#125; catch (Exception e) &#123; ... &#125;//设置TM JM SLOT信息final ClusterSpecification clusterSpecification = createClusterSpecification(yarnDescriptor.getFlinkConfiguration(), cmd)//部署集群yarnCluster = yarnDescriptor.deploySessionCluster(clusterSpecification);...//交互模式或detach模式运行if (detachedMode) &#123; // print info and quit: LOG.info(&quot;The Flink YARN client has been started in detached mode. In order to stop &quot; + &quot;Flink on YARN, use the following command or a YARN web interface to stop it:\n&quot; + &quot;yarn application -kill &quot; + yarnCluster.getApplicationId()); yarnCluster.waitForClusterToBeReady(); yarnCluster.disconnect(); &#125; else &#123; runInteractiveCli(yarnCluster, acceptInteractiveInput);&#125; 构造yarn客户端，若指定了-q queue，则确保yarn 上存在该队列 createApplication，创建application，并判断资源是否足够。 添加启动所需文件（包括-t shipfile，logback，log4j，lib目录下jar） 为yarn添加local resource，上传文件至HDFS，添加classpath。 这里有一点关于classspath需要注意，添加classpath顺序为yarn.per-job-cluster.include-user-jar参数控制，是否优先加载用户jar包，可以避免用户jar包与系统jar包冲突。yarn.per-job-cluster.include-user-jar，该参数值为first则会将用户jar包添加在classpath的前面。默认按照字母排序添加用户jar包和系统jar包。 启动application master（yarnClient.submitApplication(appContext)），获取jobmanager host和port 至此yarn集群上的am已经启动成功，下一章将详细介绍JM/TM启动及注册过程。—end.]]></content>
       <categories>
-          
-          <category> Flink </category>
-          
+        <category>Flink</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> Flink源码学习 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    <entry>
-      <title>从Linux进程调度写起</title>
-      <link href="/2018/07/21/%E4%BB%8ELinux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%86%99%E8%B5%B7/"/>
-      <url>/2018/07/21/%E4%BB%8ELinux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%86%99%E8%B5%B7/</url>
-      <content type="html"><![CDATA[<hr><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右，初步确定是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！<br><a id="more"></a></p><h2 id="问题剖析"><a href="#问题剖析" class="headerlink" title="问题剖析"></a>问题剖析</h2><p>进一步对RDB期间时延飙升现象进行了分析，发现每次RDB持久化期间，持久化子进程占用CPU高达100%，同时Redis主进程（server进程）占用CPU仅1%左右。</p><p>众所周知Redis持久化期间会fork出一个子进程，进行数据的落盘。想必你也猜到了，对的！我们对Redis进程进行了CPU绑定操作（numactl –cpubind），这样也就带来了现在这个问题，fork的继承特性导致子进程继承父进程的cpu affinity，从而父进程（redis-server）和子进程（RDB）运行在同一个CPU逻辑核上。<strong>子进程对父进程CPU资源抢占导致了持久化期间，父进程无法调度到CPU，进而请求处理时延增高。</strong></p><p>至此，大家有点着急了吧，裤子都脱了，你就给我看这个。别急问题来了：</p><ol><li><p>对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？</p></li><li><p>Linux进程公平调度（CFS），说好的公平呢？</p></li></ol><h2 id="拨云见雾"><a href="#拨云见雾" class="headerlink" title="拨云见雾"></a>拨云见雾</h2><p>上面提到的两个问题先放一放，先来看看关于linux进程调度的几个概念。</p><h3 id="1-关于CFS"><a href="#1-关于CFS" class="headerlink" title="1. 关于CFS"></a>1. 关于<a href="https://en.wikipedia.org/wiki/Completely_Fair_Scheduler" target="_blank" rel="noopener">CFS</a></h3><p>这里不对CFS做详细介绍。<br>CFS简而言之，给CPU设定一个调度周期（sched_latency_ns），目标是让每个进程在一个调度周期内至少有机会运行一次，换一种说法就是每个进程等待CPU的时间最长不超过这个调度周期；然后根据进程的数量，大家平分这个调度周期内的CPU使用权，由于进程的优先级即nice值不同，分割调度周期的时候要加权；每个进程的累计运行时间保存在自己的vruntime字段里，哪个进程的vruntime最小就获得本轮运行的权利。</p><blockquote><p>每个CPU的运行队列都维护该运行队列中所有进程的vruntime最小值，新进程的初始vruntime值就以它所在运行队列的min_vruntime为基础来设置，与老进程保持在合理的差距范围内。这里有一个内核参数sched_child_runs_first，该参数打开（1）则可以保证子进程在fork只有有限运行。</p></blockquote><p>休眠的进程在唤醒时会抢占CPU吗？是的。为了保证交互式进程可以及时的获得响应，休眠进程在唤醒时会获得vruntime的补偿，所以它在唤醒时醒时极有可能抢占CPU。但是除了交互式进程以外，主动休眠的进程（调用sleep）或定时任务，往往并不要求快速响应，它们同样会在每次唤醒时获得vruntime补偿，这就导致可能对其它更重要的应用进程被抢占，从而影响整体性能。那能怎么办？这里有两个内核参数可供调整：</p><ul><li><p>禁用进程唤醒抢占特性</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># echo NO_WAKEUP_PREEMPT &gt; /sys/kernel/debug/sched_features</span></span><br><span class="line"><span class="comment"># 唤醒的进程不会立即抢占运行中的进程，而是要等到运行进程用完时间片之后。</span></span><br></pre></td></tr></table></figure></li><li><p>sched_wakeup_granularity_ns</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># echo 4000000 &gt; /proc/kernel/sched_wakeup_granularity_ns</span></span><br><span class="line"><span class="comment"># 只有当唤醒进程的vruntime比当前进程的vruntime小、并且两者差距(vdiff)大于sched_wakeup_granularity_ns的情况下，才可以抢占，否则不可以。值越小发生抢占的概率越高。</span></span><br></pre></td></tr></table></figure></li></ul><h3 id="2-关于Redis-IO多路复用"><a href="#2-关于Redis-IO多路复用" class="headerlink" title="2. 关于Redis IO多路复用"></a>2. 关于Redis IO多路复用</h3><p>这里只说1点，redis的IO多路复用处理逻辑如下（详细代码见函数aeProcessEvents() ）：</p><pre><code>1. 根据定时事件表计算需要等待的最短时间，判断是否有时间事件需要处理；2. 调用aeApiPoll()进入监听轮询，如果没有事件发生就会进入睡眠状态；3. 事件发生会被唤醒，处理已触发的。</code></pre><p><strong>这里说明主进程会频繁从睡眠状态被唤醒。</strong></p><h3 id="3-关于fork子进程"><a href="#3-关于fork子进程" class="headerlink" title="3. 关于fork子进程"></a>3. 关于fork子进程</h3><p>fork出的子进程几乎继承了父进程的所有属性：</p><ul><li>环境变量</li><li>进程组号</li><li>工作目录</li><li>数据段、代码段、栈段、堆</li><li>scheduler class（Redis进程为sched_other）</li><li>nice值</li><li>CPU亲缘性</li><li>等等<br>这里需要注意的是fork采用“写时拷贝”技术（COW），即内核并不是复制整个进程的地址空间，而是让父子进程共享同一个地址空间。只用在需要写入的时候才会复制地址空间，从而使各个进行拥有各自的地址空间。也就是说，资源的复制是在需要写入的时候才会进行，在此之前，只有以只读方式共享。</li></ul><h2 id="这是最后一段"><a href="#这是最后一段" class="headerlink" title="这是最后一段"></a>这是最后一段</h2><p>写到这里想必大家对于上面两个问题，基本已经知道答案了。<br><strong>对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？</strong></p><p>Redis采用非阻塞式IO，其在遍历字典期间会持续占用CPU，而不会因为IO导致主动让出CPU，AOF同理，具体可以参看Redis持久化源码。</p><hr><p><strong>Linux进程公平调度（CFS），说好的公平呢？</strong><br>公平调度是指在两个任务都同时ready的情况下（相同优先级），可以获得相同的CPU运行时长，如果期间其中一个任务阻塞或主动让出CPU（sleep），CPU可以100%交给另一个任务。回到Redis的fork子进程，父进程在负载不足的情况下，监听的事件都未准备好时，会进入休眠状态，此时会主动让出CPU。<br>然而，这和上面说的关于子进程唤醒的两个系统参数有什么卵关系？当然，生产环境系统禁用了唤醒抢占特性，且sched_wakeup_granularity_ns该值设置为15000000（通常默认为4000000），直接导致了父进程在被唤醒时无法抢占到CPU，进而导致了子进程无限制的抢占CPU，Redis主进程不能及时被调度。</p><hr><p>解决方法：生产环境只是将sched_wakeup_granularity_ns修改为了4000000，问题解决。</p><p>— end</p>]]></content>
-      
+      <tags>
+        <tag>Flink源码学习</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[从Linux进程调度写起]]></title>
+    <url>%2F2018%2F07%2F21%2F%E4%BB%8ELinux%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6%E5%86%99%E8%B5%B7%2F</url>
+    <content type="text"><![CDATA[背景话题的背景还要从前一阵生产环境上的遇到的一个问题说起，客户部署了Redis集群作为流处理缓存，系统请求时延要求&lt;30ms，但实际时延一直在200ms左右，初步确定是由于Redis开启了RDB导致Redis读写性能受影响，默认RDB 策略（save 900 1;save 300 10;save 60 10000）导致频繁触发RDB。因此将RDB周期修改为save 10800 100000，即3个小时key更新达到10W次触发RDB。至此业务请求时延满足要求&lt;30ms，但是每3h触发RDB时，RDB持续1min左右，此期间时延都会出现一次飙升，时延监控上看来会出现一个个的毛刺现象。同样的颇为不爽！ 问题剖析进一步对RDB期间时延飙升现象进行了分析，发现每次RDB持久化期间，持久化子进程占用CPU高达100%，同时Redis主进程（server进程）占用CPU仅1%左右。 众所周知Redis持久化期间会fork出一个子进程，进行数据的落盘。想必你也猜到了，对的！我们对Redis进程进行了CPU绑定操作（numactl –cpubind），这样也就带来了现在这个问题，fork的继承特性导致子进程继承父进程的cpu affinity，从而父进程（redis-server）和子进程（RDB）运行在同一个CPU逻辑核上。子进程对父进程CPU资源抢占导致了持久化期间，父进程无法调度到CPU，进而请求处理时延增高。 至此，大家有点着急了吧，裤子都脱了，你就给我看这个。别急问题来了： 对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？ Linux进程公平调度（CFS），说好的公平呢？ 拨云见雾上面提到的两个问题先放一放，先来看看关于linux进程调度的几个概念。 1. 关于CFS这里不对CFS做详细介绍。CFS简而言之，给CPU设定一个调度周期（sched_latency_ns），目标是让每个进程在一个调度周期内至少有机会运行一次，换一种说法就是每个进程等待CPU的时间最长不超过这个调度周期；然后根据进程的数量，大家平分这个调度周期内的CPU使用权，由于进程的优先级即nice值不同，分割调度周期的时候要加权；每个进程的累计运行时间保存在自己的vruntime字段里，哪个进程的vruntime最小就获得本轮运行的权利。 每个CPU的运行队列都维护该运行队列中所有进程的vruntime最小值，新进程的初始vruntime值就以它所在运行队列的min_vruntime为基础来设置，与老进程保持在合理的差距范围内。这里有一个内核参数sched_child_runs_first，该参数打开（1）则可以保证子进程在fork只有有限运行。 休眠的进程在唤醒时会抢占CPU吗？是的。为了保证交互式进程可以及时的获得响应，休眠进程在唤醒时会获得vruntime的补偿，所以它在唤醒时醒时极有可能抢占CPU。但是除了交互式进程以外，主动休眠的进程（调用sleep）或定时任务，往往并不要求快速响应，它们同样会在每次唤醒时获得vruntime补偿，这就导致可能对其它更重要的应用进程被抢占，从而影响整体性能。那能怎么办？这里有两个内核参数可供调整： 禁用进程唤醒抢占特性 12# echo NO_WAKEUP_PREEMPT &gt; /sys/kernel/debug/sched_features# 唤醒的进程不会立即抢占运行中的进程，而是要等到运行进程用完时间片之后。 sched_wakeup_granularity_ns 12# echo 4000000 &gt; /proc/kernel/sched_wakeup_granularity_ns# 只有当唤醒进程的vruntime比当前进程的vruntime小、并且两者差距(vdiff)大于sched_wakeup_granularity_ns的情况下，才可以抢占，否则不可以。值越小发生抢占的概率越高。 2. 关于Redis IO多路复用这里只说1点，redis的IO多路复用处理逻辑如下（详细代码见函数aeProcessEvents() ）： 1. 根据定时事件表计算需要等待的最短时间，判断是否有时间事件需要处理； 2. 调用aeApiPoll()进入监听轮询，如果没有事件发生就会进入睡眠状态； 3. 事件发生会被唤醒，处理已触发的。 这里说明主进程会频繁从睡眠状态被唤醒。 3. 关于fork子进程fork出的子进程几乎继承了父进程的所有属性： 环境变量 进程组号 工作目录 数据段、代码段、栈段、堆 scheduler class（Redis进程为sched_other） nice值 CPU亲缘性 等等这里需要注意的是fork采用“写时拷贝”技术（COW），即内核并不是复制整个进程的地址空间，而是让父子进程共享同一个地址空间。只用在需要写入的时候才会复制地址空间，从而使各个进行拥有各自的地址空间。也就是说，资源的复制是在需要写入的时候才会进行，在此之前，只有以只读方式共享。 这是最后一段写到这里想必大家对于上面两个问题，基本已经知道答案了。对于Redis RDB持久化这种IO密集型任务为什么会去抢占父进程的CPU，持久化磁盘IO不应该会让出CPU吗？ Redis采用非阻塞式IO，其在遍历字典期间会持续占用CPU，而不会因为IO导致主动让出CPU，AOF同理，具体可以参看Redis持久化源码。 Linux进程公平调度（CFS），说好的公平呢？公平调度是指在两个任务都同时ready的情况下（相同优先级），可以获得相同的CPU运行时长，如果期间其中一个任务阻塞或主动让出CPU（sleep），CPU可以100%交给另一个任务。回到Redis的fork子进程，父进程在负载不足的情况下，监听的事件都未准备好时，会进入休眠状态，此时会主动让出CPU。然而，这和上面说的关于子进程唤醒的两个系统参数有什么卵关系？当然，生产环境系统禁用了唤醒抢占特性，且sched_wakeup_granularity_ns该值设置为15000000（通常默认为4000000），直接导致了父进程在被唤醒时无法抢占到CPU，进而导致了子进程无限制的抢占CPU，Redis主进程不能及时被调度。 解决方法：生产环境只是将sched_wakeup_granularity_ns修改为了4000000，问题解决。 — end]]></content>
       <categories>
-          
-          <category> Linux </category>
-          
+        <category>Linux</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> 进程调度 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    <entry>
-      <title>开篇</title>
-      <link href="/2018/07/19/%E5%BC%80%E7%AF%87/"/>
-      <url>/2018/07/19/%E5%BC%80%E7%AF%87/</url>
-      <content type="html"><![CDATA[<p>花了两个晚上总算把博客搭起来了。建个博客旨在驱动自己去深入学习一些技术，锻炼自己的总结能力，及时记录所学所想，如果同时你能够帮到别人一二，自然更好。</p><p>从今天起<strong>锻炼，写博，卖马为生!</strong></p><blockquote><p>傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。</p><p align="right">—— 王小波</p></blockquote>]]></content>
-      
+      <tags>
+        <tag>进程调度</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[开篇]]></title>
+    <url>%2F2018%2F07%2F19%2F%E5%BC%80%E7%AF%87%2F</url>
+    <content type="text"><![CDATA[花了两个晚上总算把博客搭起来了。建个博客旨在驱动自己去深入学习一些技术，锻炼自己的总结能力，及时记录所学所想，如果同时你能够帮到别人一二，自然更好。 从今天起锻炼，写博，卖马为生! 傍晚时分，你坐在屋檐下，看着天慢慢地黑下去，心里寂寞而凄凉，感到自己的生命被剥夺了。当时我是个年轻人，但我害怕这样生活下去，衰老下去。在我看来，这是比死亡更可怕的事。 —— 王小波]]></content>
       <categories>
-          
-          <category> 其他 </category>
-          
+        <category>其他</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> 其他 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-  
-  
+      <tags>
+        <tag>其他</tag>
+      </tags>
+  </entry>
 </search>

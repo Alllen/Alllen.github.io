@@ -116,7 +116,7 @@
 <meta property="og:site_name" content="Wanger&#39;s Blog">
 <meta property="og:description" content="类文件结构 class文件魔鬼数字值为：0xCAFEBABE 虚拟机把描述类的Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的java类型。 类从被加载到虚拟机内存开始，到卸载出内存为止。经历加载Loading -&amp;gt; 校验Verification -&amp;gt; 准备Preparation -&amp;gt; 解析Resolution -&amp;gt; 初始化In">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-06-03T17:39:39.833Z">
+<meta property="og:updated_time" content="2019-06-03T17:42:03.595Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="深入理解java虚拟机学习笔记 - 2">
 <meta name="twitter:description" content="类文件结构 class文件魔鬼数字值为：0xCAFEBABE 虚拟机把描述类的Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的java类型。 类从被加载到虚拟机内存开始，到卸载出内存为止。经历加载Loading -&amp;gt; 校验Verification -&amp;gt; 准备Preparation -&amp;gt; 解析Resolution -&amp;gt; 初始化In">
@@ -378,7 +378,7 @@
                 
               
 
-              <time title="创建时间：2019-06-04 01:30:30 / 修改时间：01:39:39" itemprop="dateCreated datePublished" datetime="2019-06-04T01:30:30+08:00">2019-06-04</time>
+              <time title="创建时间：2019-06-04 01:30:30 / 修改时间：01:42:03" itemprop="dateCreated datePublished" datetime="2019-06-04T01:30:30+08:00">2019-06-04</time>
             
 
             
@@ -441,8 +441,7 @@
 <li>类从被加载到虚拟机内存开始，到卸载出内存为止。经历<strong>加载Loading</strong> -&gt; <strong>校验Verification</strong> -&gt; <strong>准备Preparation</strong> -&gt; <strong>解析Resolution</strong> -&gt; <strong>初始化Initialization</strong> -&gt; <strong>使用Using</strong> -&gt; <strong>卸载Unloading</strong></li>
 </ul>
 <a id="more"></a>
-<p>###虚拟机加载机制</p>
-<ul>
+<h3 id="虚拟机加载机制"><a href="#虚拟机加载机制" class="headerlink" title="虚拟机加载机制"></a>虚拟机加载机制</h3><ul>
 <li>对于静态字段，只有直接定义该字段的类才会被初始化。例如子类中调用父类定义的静态字段，只会触发父类的初始化，而不会触发子类的初始化。</li>
 <li>通过数组定义的引用类不会触发此类的初始化。例如下面的语句：</li>
 </ul>
@@ -665,7 +664,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#类文件结构"><span class="nav-number">1.</span> <span class="nav-text">类文件结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类的加载过程"><span class="nav-number">2.</span> <span class="nav-text">类的加载过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类加载器"><span class="nav-number">3.</span> <span class="nav-text">类加载器</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#类文件结构"><span class="nav-number">1.</span> <span class="nav-text">类文件结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟机加载机制"><span class="nav-number">2.</span> <span class="nav-text">虚拟机加载机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类的加载过程"><span class="nav-number">3.</span> <span class="nav-text">类的加载过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类加载器"><span class="nav-number">4.</span> <span class="nav-text">类加载器</span></a></li></ol></div>
             
 
           </div>
